@@ -12,7 +12,7 @@ use ic_agent::{
     Agent, Identity,
 };
 use ic_base_types::PrincipalId;
-use ic_nns_constants::{GENESIS_TOKEN_CANISTER_ID, GOVERNANCE_CANISTER_ID, LEDGER_CANISTER_ID};
+use ic_nns_constants::{GOVERNANCE_CANISTER_ID, LEDGER_CANISTER_ID};
 use ic_types::Principal;
 use libsecp256k1::{PublicKey, SecretKey};
 use pem::{encode, Pem};
@@ -28,7 +28,6 @@ pub fn get_ic_url() -> String {
     std::env::var("IC_URL").unwrap_or_else(|_| IC_URL.to_string())
 }
 
-pub mod qr;
 pub mod signing;
 
 pub type AnyhowResult<T = ()> = anyhow::Result<T>;
@@ -41,10 +40,6 @@ pub fn governance_canister_id() -> Principal {
     Principal::from_slice(GOVERNANCE_CANISTER_ID.as_ref())
 }
 
-pub fn genesis_token_canister_id() -> Principal {
-    Principal::from_slice(GENESIS_TOKEN_CANISTER_ID.as_ref())
-}
-
 // Returns the candid for the specified canister id, if there is one.
 pub fn get_local_candid(canister_id: Principal) -> AnyhowResult<String> {
     if canister_id == governance_canister_id() {
@@ -53,8 +48,6 @@ pub fn get_local_candid(canister_id: Principal) -> AnyhowResult<String> {
     } else if canister_id == ledger_canister_id() {
         String::from_utf8(include_bytes!("../../candid/ledger.did").to_vec())
             .map_err(|e| anyhow!(e))
-    } else if canister_id == genesis_token_canister_id() {
-        String::from_utf8(include_bytes!("../../candid/gtc.did").to_vec()).map_err(|e| anyhow!(e))
     } else {
         unreachable!()
     }
@@ -136,7 +129,7 @@ pub fn get_identity(pem: &str) -> Box<dyn Identity + Sync + Send> {
         Err(_) => match BasicIdentity::from_pem(pem.as_bytes()) {
             Ok(identity) => Box::new(identity),
             Err(_) => {
-                eprintln!("Couldn't load identity from PEM file");
+                eprintln!("Couldn't load identity from PEM");
                 std::process::exit(1);
             }
         },
@@ -146,7 +139,7 @@ pub fn get_identity(pem: &str) -> Box<dyn Identity + Sync + Send> {
 pub fn require_pem(pem: &Option<String>) -> AnyhowResult<String> {
     match pem {
         None => Err(anyhow!(
-            "Cannot use anonymous principal, did you forget --pem-file <pem-file> ?"
+            "Cannot use anonymous principal, did you forget --seed-file <seed-file> ?"
         )),
         Some(val) => Ok(val.clone()),
     }

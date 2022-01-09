@@ -1,7 +1,7 @@
 Sending message with
 
   Call type:   update
-  Sender:      fdsgv-62ihb-nbiqv-xgic5-iefsv-3cscz-tmbzv-63qd5-vh43v-dqfrt-pae
+  Sender:      rdnpk-pvlpq-hkexy-4apgn-kqkkh-o4bs3-gglna-nko2o-mf7ti-4btac-jqe
   Canister id: rrkah-fqaaa-aaaaa-aaaaq-cai
   Method name: manage_neuron
   Arguments:   (
@@ -11,7 +11,7 @@ Sending message with
       Configure = record {
         operation = opt variant {
           RemoveHotKey = record {
-            hot_key_to_remove = opt principal "fdsgv-62ihb-nbiqv-xgic5-iefsv-3cscz-tmbzv-63qd5-vh43v-dqfrt-pae";
+            hot_key_to_remove = opt principal "rdnpk-pvlpq-hkexy-4apgn-kqkkh-o4bs3-gglna-nko2o-mf7ti-4btac-jqe";
           }
         };
       }
@@ -22,7 +22,7 @@ Sending message with
 Sending message with
 
   Call type:   update
-  Sender:      fdsgv-62ihb-nbiqv-xgic5-iefsv-3cscz-tmbzv-63qd5-vh43v-dqfrt-pae
+  Sender:      rdnpk-pvlpq-hkexy-4apgn-kqkkh-o4bs3-gglna-nko2o-mf7ti-4btac-jqe
   Canister id: rrkah-fqaaa-aaaaa-aaaaq-cai
   Method name: manage_neuron
   Arguments:   (
@@ -39,7 +39,7 @@ Sending message with
 Sending message with
 
   Call type:   update
-  Sender:      fdsgv-62ihb-nbiqv-xgic5-iefsv-3cscz-tmbzv-63qd5-vh43v-dqfrt-pae
+  Sender:      rdnpk-pvlpq-hkexy-4apgn-kqkkh-o4bs3-gglna-nko2o-mf7ti-4btac-jqe
   Canister id: rrkah-fqaaa-aaaaa-aaaaq-cai
   Method name: manage_neuron
   Arguments:   (

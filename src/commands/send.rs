@@ -9,26 +9,8 @@ use candid::CandidType;
 use clap::Parser;
 use ic_agent::agent::ReplicaV2Transport;
 use ic_agent::{agent::http_transport::ReqwestHttpReplicaV2Transport, RequestId};
-use ic_types::principal::Principal;
-use ledger_canister::{ICPTs, Subaccount};
-use serde::{Deserialize, Serialize};
+use ledger_canister::{AccountIdentifier, Memo, Subaccount, Tokens};
 use std::str::FromStr;
-
-#[derive(
-    Serialize,
-    Deserialize,
-    CandidType,
-    Clone,
-    Copy,
-    Hash,
-    Debug,
-    Default,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-)]
-pub struct Memo(pub u64);
 
 #[derive(CandidType)]
 pub struct TimeStamp {
@@ -38,10 +20,10 @@ pub struct TimeStamp {
 #[derive(CandidType)]
 pub struct SendArgs {
     pub memo: Memo,
-    pub amount: ICPTs,
-    pub fee: ICPTs,
+    pub amount: Tokens,
+    pub fee: Tokens,
     pub from_subaccount: Option<Subaccount>,
-    pub to: String,
+    pub to: AccountIdentifier,
     pub created_at_time: Option<TimeStamp>,
 }
 
@@ -76,25 +58,6 @@ pub async fn exec(opts: SendOpts) -> AnyhowResult {
         return Err(anyhow!("Invalid JSON content"));
     }
     Ok(())
-}
-
-pub async fn submit_unsigned_ingress(
-    canister_id: Principal,
-    method_name: &str,
-    args: Vec<u8>,
-    dry_run: bool,
-) -> AnyhowResult {
-    let msg = crate::lib::signing::sign("", canister_id, method_name, args)?;
-    let ingress = msg.message;
-    send(
-        &ingress,
-        &SendOpts {
-            file_name: Default::default(),
-            yes: false,
-            dry_run,
-        },
-    )
-    .await
 }
 
 async fn submit_ingress_and_check_status(

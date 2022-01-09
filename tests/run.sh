@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-PEM=`cat ./identity.pem`
+PEM=$(cat ./seed.txt)
 
 set -euo pipefail
 

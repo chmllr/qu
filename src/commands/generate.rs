@@ -66,7 +66,7 @@ pub fn exec(opts: GenerateOpts) -> AnyhowResult {
     if let Some(path) = opts.pem_file {
         std::fs::write(path, pem.clone())?;
     }
-    let (principal_id, account_id) = crate::commands::public::get_ids(&Some(pem))?;
+    let (principal_id, account_id) = crate::commands::ids::get_ids(&Some(pem))?;
     println!("Principal id: {}", principal_id);
     println!("Account id: {}", account_id);
     Ok(())
