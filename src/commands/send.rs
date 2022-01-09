@@ -9,7 +9,6 @@ use candid::CandidType;
 use clap::Parser;
 use ic_agent::agent::ReplicaV2Transport;
 use ic_agent::{agent::http_transport::ReqwestHttpReplicaV2Transport, RequestId};
-use ic_types::principal::Principal;
 use ledger_canister::{ICPTs, Subaccount};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
@@ -76,25 +75,6 @@ pub async fn exec(opts: SendOpts) -> AnyhowResult {
         return Err(anyhow!("Invalid JSON content"));
     }
     Ok(())
-}
-
-pub async fn submit_unsigned_ingress(
-    canister_id: Principal,
-    method_name: &str,
-    args: Vec<u8>,
-    dry_run: bool,
-) -> AnyhowResult {
-    let msg = crate::lib::signing::sign("", canister_id, method_name, args)?;
-    let ingress = msg.message;
-    send(
-        &ingress,
-        &SendOpts {
-            file_name: Default::default(),
-            yes: false,
-            dry_run,
-        },
-    )
-    .await
 }
 
 async fn submit_ingress_and_check_status(
