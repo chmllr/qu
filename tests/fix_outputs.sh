@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PEM=`cat ./identity.pem`
+PEM=`cat ./seed.txt`
 
 for f in `ls -1 ./commands/`; do
     out=${f/sh/txt}

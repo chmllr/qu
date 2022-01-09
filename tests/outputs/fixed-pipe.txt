@@ -1,7 +1,7 @@
 Sending message with
 
   Call type:   update
-  Sender:      fdsgv-62ihb-nbiqv-xgic5-iefsv-3cscz-tmbzv-63qd5-vh43v-dqfrt-pae
+  Sender:      rdnpk-pvlpq-hkexy-4apgn-kqkkh-o4bs3-gglna-nko2o-mf7ti-4btac-jqe
   Canister id: ryjl3-tyaaa-aaaaa-aaaba-cai
   Method name: send_dfx
   Arguments:   (
