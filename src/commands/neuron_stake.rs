@@ -1,5 +1,7 @@
+use std::str::FromStr;
+
 use crate::{
-    commands::{send::Memo, transfer},
+    commands::transfer,
     lib::{
         governance_canister_id,
         signing::{sign_ingress_with_request_status_query, IngressWithRequestId},
@@ -9,9 +11,11 @@ use crate::{
 use anyhow::anyhow;
 use candid::{CandidType, Encode};
 use clap::Parser;
-use ic_nns_constants::GOVERNANCE_CANISTER_ID;
+use ic_base_types::PrincipalId;
+use ic_nns_constants::LEDGER_CANISTER_ID;
+use ic_nns_governance::governance::compute_neuron_staking_subaccount;
 use ic_types::Principal;
-use ledger_canister::{AccountIdentifier, Subaccount};
+use ledger_canister::{AccountIdentifier, Memo};
 
 #[derive(CandidType)]
 pub struct ClaimOrRefreshNeuronFromAccount {
@@ -46,13 +50,15 @@ pub fn exec(pem: &str, opts: StakeOpts) -> AnyhowResult<Vec<IngressWithRequestId
         (_, Some(name)) => convert_name_to_nonce(name),
         _ => return Err(anyhow!("Either a nonce or a name should be specified")),
     };
-    let gov_subaccount = get_neuron_subaccount(&controller, nonce);
-    let account = AccountIdentifier::new(GOVERNANCE_CANISTER_ID.get(), Some(gov_subaccount));
+    let subacc = compute_neuron_staking_subaccount(
+        PrincipalId::from_str(&controller.to_string()).expect("couldn't parse principal id"),
+        nonce,
+    );
     let mut messages = match opts.amount {
         Some(amount) => transfer::exec(
             pem,
             transfer::TransferOpts {
-                to: account.to_hex(),
+                to: AccountIdentifier::new(LEDGER_CANISTER_ID.get(), Some(subacc)),
                 amount,
                 fee: opts.fee,
                 memo: Some(nonce.to_string()),
@@ -73,18 +79,6 @@ pub fn exec(pem: &str, opts: StakeOpts) -> AnyhowResult<Vec<IngressWithRequestId
     )?);
 
     Ok(messages)
-}
-
-// This function _must_ correspond to how the governance canister computes the
-// subaccount.
-fn get_neuron_subaccount(controller: &Principal, nonce: u64) -> Subaccount {
-    use openssl::sha::Sha256;
-    let mut data = Sha256::new();
-    data.update(&[0x0c]);
-    data.update(b"neuron-stake");
-    data.update(controller.as_slice());
-    data.update(&nonce.to_be_bytes());
-    Subaccount(data.finish())
 }
 
 fn convert_name_to_nonce(name: &str) -> u64 {

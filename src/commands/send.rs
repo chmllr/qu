@@ -9,25 +9,8 @@ use candid::CandidType;
 use clap::Parser;
 use ic_agent::agent::ReplicaV2Transport;
 use ic_agent::{agent::http_transport::ReqwestHttpReplicaV2Transport, RequestId};
-use ledger_canister::{ICPTs, Subaccount};
-use serde::{Deserialize, Serialize};
+use ledger_canister::{AccountIdentifier, Memo, Subaccount, Tokens};
 use std::str::FromStr;
-
-#[derive(
-    Serialize,
-    Deserialize,
-    CandidType,
-    Clone,
-    Copy,
-    Hash,
-    Debug,
-    Default,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-)]
-pub struct Memo(pub u64);
 
 #[derive(CandidType)]
 pub struct TimeStamp {
@@ -37,10 +20,10 @@ pub struct TimeStamp {
 #[derive(CandidType)]
 pub struct SendArgs {
     pub memo: Memo,
-    pub amount: ICPTs,
-    pub fee: ICPTs,
+    pub amount: Tokens,
+    pub fee: Tokens,
     pub from_subaccount: Option<Subaccount>,
-    pub to: String,
+    pub to: AccountIdentifier,
     pub created_at_time: Option<TimeStamp>,
 }
 
