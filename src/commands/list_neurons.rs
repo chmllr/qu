@@ -2,14 +2,9 @@ use crate::{
     lib::signing::{sign_ingress, Ingress},
     lib::{governance_canister_id, AnyhowResult},
 };
-use candid::{CandidType, Encode};
+use candid::Encode;
 use clap::Parser;
-
-#[derive(CandidType)]
-pub struct ListNeurons {
-    pub neuron_ids: Vec<u64>,
-    pub include_neurons_readable_by_caller: bool,
-}
+use ic_nns_governance::pb::v1::ListNeurons;
 
 /// Signs a neuron configuration change.
 #[derive(Parser)]

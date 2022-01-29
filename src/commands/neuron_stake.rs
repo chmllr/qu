@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use crate::{
     commands::transfer,
     lib::{
@@ -9,19 +7,15 @@ use crate::{
     },
 };
 use anyhow::anyhow;
-use candid::{CandidType, Encode};
+use candid::Encode;
 use clap::Parser;
 use ic_base_types::PrincipalId;
 use ic_nns_constants::GOVERNANCE_CANISTER_ID;
-use ic_nns_governance::governance::compute_neuron_staking_subaccount;
-use ic_types::Principal;
-use ledger_canister::{AccountIdentifier, Memo};
-
-#[derive(CandidType)]
-pub struct ClaimOrRefreshNeuronFromAccount {
-    pub memo: Memo,
-    pub controller: Option<Principal>,
-}
+use ic_nns_governance::{
+    governance::compute_neuron_staking_subaccount, pb::v1::ClaimOrRefreshNeuronFromAccount,
+};
+use ledger_canister::AccountIdentifier;
+use std::str::FromStr;
 
 /// Signs topping up of a neuron (new or existing).
 #[derive(Parser)]
@@ -67,7 +61,7 @@ pub fn exec(pem: &str, opts: StakeOpts) -> AnyhowResult<Vec<IngressWithRequestId
         _ => Vec::new(),
     };
     let args = Encode!(&ClaimOrRefreshNeuronFromAccount {
-        memo: Memo(nonce),
+        memo: nonce,
         controller: Some(controller),
     })?;
 

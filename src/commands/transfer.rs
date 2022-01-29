@@ -1,4 +1,3 @@
-use crate::commands::send::SendArgs;
 use crate::lib::{
     ledger_canister_id,
     signing::{sign_ingress_with_request_status_query, IngressWithRequestId},
@@ -7,7 +6,7 @@ use crate::lib::{
 use anyhow::anyhow;
 use candid::Encode;
 use clap::Parser;
-use ledger_canister::{AccountIdentifier, Memo, Tokens, TRANSACTION_FEE};
+use ledger_canister::{AccountIdentifier, Memo, SendArgs, Tokens, TRANSACTION_FEE};
 
 /// Signs an ICP transfer transaction.
 #[derive(Parser)]
