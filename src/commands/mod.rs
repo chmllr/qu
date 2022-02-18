@@ -10,6 +10,7 @@ mod ids;
 mod list_neurons;
 mod neuron_manage;
 mod neuron_stake;
+mod raw;
 mod request_status;
 mod send;
 mod transfer;
@@ -28,6 +29,8 @@ pub enum Command {
     ListNeurons(list_neurons::ListNeuronsOpts),
     /// Generate a mnemonic seed phrase and generate or recover PEM.
     Generate(generate::GenerateOpts),
+    /// Call a governance canister method directly
+    Raw(raw::Opts),
 }
 
 pub fn exec(pem: &Option<String>, cmd: Command) -> AnyhowResult {
@@ -52,6 +55,10 @@ pub fn exec(pem: &Option<String>, cmd: Command) -> AnyhowResult {
         }
         Command::Send(opts) => runtime.block_on(async { send::exec(opts).await }),
         Command::Generate(opts) => generate::exec(opts),
+        Command::Raw(opts) => {
+            let pem = require_pem(pem)?;
+            raw::exec(&pem, opts).and_then(|out| print(&out))
+        }
     }
 }
 
