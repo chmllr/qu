@@ -19,7 +19,7 @@ use std::str::FromStr;
 
 /// Signs topping up of a neuron (new or existing).
 #[derive(Parser)]
-pub struct StakeOpts {
+pub struct Opts {
     /// ICPs to be staked on the newly created neuron.
     #[clap(long)]
     amount: Option<String>,
@@ -37,7 +37,7 @@ pub struct StakeOpts {
     fee: Option<String>,
 }
 
-pub fn exec(pem: &str, opts: StakeOpts) -> AnyhowResult<Vec<IngressWithRequestId>> {
+pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>> {
     let (controller, _) = crate::commands::ids::get_ids(&Some(pem.to_string()))?;
     let nonce = match (&opts.nonce, &opts.name) {
         (Some(nonce), _) => *nonce,
@@ -51,7 +51,7 @@ pub fn exec(pem: &str, opts: StakeOpts) -> AnyhowResult<Vec<IngressWithRequestId
     let mut messages = match opts.amount {
         Some(amount) => transfer::exec(
             pem,
-            transfer::TransferOpts {
+            transfer::Opts {
                 to: AccountIdentifier::new(GOVERNANCE_CANISTER_ID.get(), Some(subacc)),
                 amount,
                 fee: opts.fee,

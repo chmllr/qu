@@ -18,7 +18,7 @@ use ic_nns_governance::pb::v1::{
 
 /// Signs a neuron configuration change.
 #[derive(Parser)]
-pub struct ManageOpts {
+pub struct Opts {
     /// The id of the neuron to manage.
     neuron_id: String,
 
@@ -63,7 +63,7 @@ pub struct ManageOpts {
     merge_maturity: Option<u32>,
 }
 
-pub fn exec(pem: &str, opts: ManageOpts) -> AnyhowResult<Vec<IngressWithRequestId>> {
+pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>> {
     let mut msgs = Vec::new();
 
     let id = Some(NeuronId {

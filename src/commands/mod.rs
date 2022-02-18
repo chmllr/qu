@@ -21,14 +21,14 @@ pub use ids::get_ids;
 pub enum Command {
     /// Prints the principal id and the account id.
     PublicIds,
-    Send(send::SendOpts),
-    Transfer(transfer::TransferOpts),
-    NeuronStake(neuron_stake::StakeOpts),
-    NeuronManage(neuron_manage::ManageOpts),
+    Send(send::Opts),
+    Transfer(transfer::Opts),
+    NeuronStake(neuron_stake::Opts),
+    NeuronManage(neuron_manage::Opts),
     /// Signs the query for all neurons belonging to the signing principal.
-    ListNeurons(list_neurons::ListNeuronsOpts),
+    ListNeurons(list_neurons::Opts),
     /// Generate a mnemonic seed phrase and generate or recover PEM.
-    Generate(generate::GenerateOpts),
+    Generate(generate::Opts),
     /// Call a governance canister method directly
     Raw(raw::Opts),
 }

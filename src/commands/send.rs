@@ -12,7 +12,7 @@ use std::str::FromStr;
 
 /// Sends a signed message or a set of messages.
 #[derive(Parser)]
-pub struct SendOpts {
+pub struct Opts {
     /// Path to the signed message
     file_name: String,
 
@@ -25,7 +25,7 @@ pub struct SendOpts {
     yes: bool,
 }
 
-pub async fn exec(opts: SendOpts) -> AnyhowResult {
+pub async fn exec(opts: Opts) -> AnyhowResult {
     let json = read_from_file(&opts.file_name)?;
     if let Ok(val) = serde_json::from_str::<Ingress>(&json) {
         send(&val, &opts).await?;
@@ -45,7 +45,7 @@ pub async fn exec(opts: SendOpts) -> AnyhowResult {
 
 async fn submit_ingress_and_check_status(
     message: &IngressWithRequestId,
-    opts: &SendOpts,
+    opts: &Opts,
 ) -> AnyhowResult {
     send(&message.ingress, opts).await?;
     if opts.dry_run {
@@ -59,7 +59,7 @@ async fn submit_ingress_and_check_status(
     Ok(())
 }
 
-async fn send(message: &Ingress, opts: &SendOpts) -> AnyhowResult {
+async fn send(message: &Ingress, opts: &Opts) -> AnyhowResult {
     let (sender, canister_id, method_name, args) = message.parse()?;
 
     println!("Sending message with\n");

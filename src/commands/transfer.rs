@@ -10,7 +10,7 @@ use ledger_canister::{AccountIdentifier, Memo, SendArgs, Tokens, TRANSACTION_FEE
 
 /// Signs an ICP transfer transaction.
 #[derive(Parser)]
-pub struct TransferOpts {
+pub struct Opts {
     /// Reference number, default is 0.
     #[clap(long)]
     pub memo: Option<String>,
@@ -27,7 +27,7 @@ pub struct TransferOpts {
     pub to: AccountIdentifier,
 }
 
-pub fn exec(pem: &str, opts: TransferOpts) -> AnyhowResult<Vec<IngressWithRequestId>> {
+pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>> {
     let amount =
         parse_icpts(&opts.amount).map_err(|err| anyhow!("Could not add ICPs and e8s: {}", err))?;
     let fee = opts.fee.map_or(TRANSACTION_FEE, |v| {

@@ -7,7 +7,7 @@ use std::path::Path;
 
 #[derive(Parser, Debug)]
 #[clap(about, version, author)]
-pub struct GenerateOpts {
+pub struct Opts {
     /// Number of words: 12 or 24.
     #[clap(long, default_value = "12")]
     words: u32,
@@ -34,7 +34,7 @@ pub struct GenerateOpts {
 }
 
 /// Generate or recover mnemonic seed phrase and/or PEM file.
-pub fn exec(opts: GenerateOpts) -> AnyhowResult {
+pub fn exec(opts: Opts) -> AnyhowResult {
     if Path::new(&opts.seed_file).exists() && !opts.overwrite_seed_file {
         return Err(anyhow!("Seed file exists and overwrite is not set."));
     }
