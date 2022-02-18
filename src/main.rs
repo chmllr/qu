@@ -12,6 +12,10 @@ pub struct CliOpts {
     #[clap(long)]
     seed_file: Option<String>,
 
+    /// Path to your PEM file (use "-" for STDIN)
+    #[clap(long)]
+    pem_file: Option<String>,
+
     #[clap(subcommand)]
     command: commands::Command,
 }
@@ -19,12 +23,16 @@ pub struct CliOpts {
 fn main() {
     let opts = CliOpts::parse();
     let command = opts.command;
-    let pem = opts.seed_file.map(|path| {
-        let phrase = read_file(path);
-        lib::mnemonic_to_pem(
-            &Mnemonic::parse(phrase).expect("Couldn't parse the seed phrase as a valid mnemonic"),
-        )
-    });
+    let pem = match opts.pem_file {
+        Some(file) => Some(read_file(file)),
+        None => opts.seed_file.map(|path| {
+            let phrase = read_file(path);
+            lib::mnemonic_to_pem(
+                &Mnemonic::parse(phrase)
+                    .expect("Couldn't parse the seed phrase as a valid mnemonic"),
+            )
+        }),
+    };
     if let Err(err) = commands::exec(&pem, command) {
         eprintln!("{}", err);
         std::process::exit(1);
