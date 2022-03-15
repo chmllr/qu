@@ -10,8 +10,9 @@ use ic_base_types::PrincipalId;
 use ic_nns_common::pb::v1::NeuronId;
 use ic_nns_governance::pb::v1::{
     manage_neuron::{
-        configure::Operation, AddHotKey, Command, Configure, Disburse, IncreaseDissolveDelay,
-        Merge, MergeMaturity, RemoveHotKey, Split, StartDissolving, StopDissolving,
+        configure::Operation, AddHotKey, Command, Configure, Disburse, Follow,
+        IncreaseDissolveDelay, Merge, MergeMaturity, RemoveHotKey, Split, StartDissolving,
+        StopDissolving,
     },
     ManageNeuron,
 };
@@ -61,6 +62,10 @@ pub struct Opts {
     /// Merge the percentage (between 1 and 100) of the maturity of a neuron into the current stake.
     #[clap(long)]
     merge_maturity: Option<u32>,
+
+    /// Remove all followees for the NeuronManagement topic
+    #[clap(long)]
+    clear_manage_neuron_followees: bool,
 }
 
 pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>> {
@@ -192,6 +197,18 @@ pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>> {
         })?;
         msgs.push(args);
     };
+
+    if opts.clear_manage_neuron_followees {
+        let args = Encode!(&ManageNeuron {
+            id,
+            command: Some(Command::Follow(Follow {
+                topic: 1,
+                followees: Vec::new()
+            })),
+            neuron_id_or_subaccount: None,
+        })?;
+        msgs.push(args);
+    }
 
     if msgs.is_empty() {
         return Err(anyhow!("No instructions provided"));
