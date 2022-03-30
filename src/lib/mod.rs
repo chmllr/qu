@@ -228,7 +228,7 @@ pub fn mnemonic_to_pem(mnemonic: &Mnemonic) -> String {
         tag: String::from("EC PRIVATE KEY"),
         contents: der,
     };
-    encode(&pem).replace("\r", "").replace("\n\n", "\n")
+    encode(&pem).replace('\r', "").replace("\n\n", "\n")
 }
 
 pub async fn send_ingress(message: &Ingress) -> AnyhowResult<String> {

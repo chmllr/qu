@@ -227,7 +227,7 @@ pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>> {
 }
 
 fn parse_neuron_id(id: String) -> u64 {
-    id.replace("_", "")
+    id.replace('_', "")
         .parse()
         .expect("Couldn't parse the neuron id")
 }

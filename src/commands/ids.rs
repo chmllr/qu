@@ -6,7 +6,7 @@ use ledger_canister::AccountIdentifier;
 /// Prints the account and the principal ids.
 pub fn exec(pem: &Option<String>) -> AnyhowResult {
     let (principal_id, account_id) = get_ids(pem)?;
-    println!("Principal id: {}", principal_id.to_string());
+    println!("Principal id: {}", principal_id);
     println!("Account id: {}", account_id);
     Ok(())
 }
