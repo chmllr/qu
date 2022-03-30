@@ -1,5 +1,4 @@
 //! All the common functionality.
-
 use anyhow::anyhow;
 use bip39::Mnemonic;
 use candid::{
@@ -7,6 +6,8 @@ use candid::{
     types::Function,
     IDLProg,
 };
+use ic_agent::agent::ReplicaV2Transport;
+use ic_agent::{agent::http_transport::ReqwestHttpReplicaV2Transport, RequestId};
 use ic_agent::{
     identity::{AnonymousIdentity, BasicIdentity, Secp256k1Identity},
     Agent, Identity,
@@ -17,10 +18,12 @@ use ic_types::Principal;
 use libsecp256k1::{PublicKey, SecretKey};
 use pem::{encode, Pem};
 use serde_cbor::Value;
+use signing::Ingress;
 use simple_asn1::ASN1Block::{
     BitString, Explicit, Integer, ObjectIdentifier, OctetString, Sequence,
 };
 use simple_asn1::{oid, to_der, ASN1Class, BigInt, BigUint};
+use std::str::FromStr;
 
 pub const IC_URL: &str = "https://ic0.app";
 
@@ -226,4 +229,28 @@ pub fn mnemonic_to_pem(mnemonic: &Mnemonic) -> String {
         contents: der,
     };
     encode(&pem).replace("\r", "").replace("\n\n", "\n")
+}
+
+pub async fn send_ingress(message: &Ingress) -> AnyhowResult<String> {
+    let (_, canister_id, method_name, _) = message.parse()?;
+
+    let transport = ReqwestHttpReplicaV2Transport::create(get_ic_url())?;
+    let content = hex::decode(&message.content)?;
+
+    if message.call_type == "query" {
+        Ok(parse_query_response(
+            transport.query(canister_id, content).await?,
+            canister_id,
+            &method_name,
+        )?)
+    } else {
+        let request_id = RequestId::from_str(
+            &message
+                .clone()
+                .request_id
+                .expect("Cannot get request_id from the update message"),
+        )?;
+        transport.call(canister_id, content, request_id).await?;
+        Ok(format!("0x{}", String::from(request_id)))
+    }
 }

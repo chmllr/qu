@@ -1,13 +1,10 @@
 use crate::lib::{
-    get_ic_url, parse_query_response, read_from_file, request_status,
+    read_from_file, request_status, send_ingress,
     signing::{Ingress, IngressWithRequestId},
     AnyhowResult,
 };
 use anyhow::anyhow;
 use clap::Parser;
-use ic_agent::agent::ReplicaV2Transport;
-use ic_agent::{agent::http_transport::ReqwestHttpReplicaV2Transport, RequestId};
-use std::str::FromStr;
 
 /// Sends a signed message or a set of messages.
 #[derive(Parser)]
@@ -81,30 +78,11 @@ async fn send(message: &Ingress, opts: &Opts) -> AnyhowResult {
         }
     }
 
-    let transport = ReqwestHttpReplicaV2Transport::create(get_ic_url())?;
-    let content = hex::decode(&message.content)?;
-
-    match message.call_type.as_str() {
-        "query" => {
-            let response = parse_query_response(
-                transport.query(canister_id, content).await?,
-                canister_id,
-                &method_name,
-            )?;
-            println!("Response: {}", response);
-        }
-        "update" => {
-            let request_id = RequestId::from_str(
-                &message
-                    .clone()
-                    .request_id
-                    .expect("Cannot get request_id from the update message"),
-            )?;
-            transport.call(canister_id, content, request_id).await?;
-            let request_id = format!("0x{}", String::from(request_id));
-            println!("Request ID: {}", request_id);
-        }
-        _ => unreachable!(),
+    let result = send_ingress(message).await?;
+    if message.call_type == "query" {
+        println!("Response: {}", result);
+    } else {
+        println!("RequestId: {}", result);
     }
     Ok(())
 }
