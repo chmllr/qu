@@ -11,7 +11,6 @@ mod list_neurons;
 mod neuron_manage;
 mod neuron_stake;
 mod raw;
-mod request_status;
 mod send;
 mod transfer;
 

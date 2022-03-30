@@ -1,6 +1,5 @@
-use crate::commands::request_status;
 use crate::lib::{
-    get_ic_url, parse_query_response, read_from_file,
+    get_ic_url, parse_query_response, read_from_file, request_status,
     signing::{Ingress, IngressWithRequestId},
     AnyhowResult,
 };
