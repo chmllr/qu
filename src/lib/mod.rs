@@ -53,7 +53,7 @@ pub fn get_local_candid(canister_id: Principal) -> AnyhowResult<String> {
         String::from_utf8(include_bytes!("../../candid/ledger.did").to_vec())
             .map_err(|e| anyhow!(e))
     } else {
-        unreachable!()
+        Ok(Default::default())
     }
 }
 

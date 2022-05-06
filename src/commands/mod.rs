@@ -28,7 +28,7 @@ pub enum Command {
     ListNeurons(list_neurons::Opts),
     /// Generate a mnemonic seed phrase and generate or recover PEM.
     Generate(generate::Opts),
-    /// Call a governance canister method directly
+    /// Call a canister method directly
     Raw(raw::Opts),
 }
 

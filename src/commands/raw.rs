@@ -1,15 +1,18 @@
 use std::str::FromStr;
 
 use crate::lib::{
-    governance_canister_id,
     signing::{sign_ingress_with_request_status_query, IngressWithRequestId},
     AnyhowResult,
 };
+use candid::Principal;
 use clap::Parser;
 
-/// Raw governance canister call
+/// Raw canister call
 #[derive(Parser)]
 pub struct Opts {
+    /// Canister id
+    canister_id: Principal,
+
     /// Canister method
     method: String,
 
@@ -20,7 +23,7 @@ pub struct Opts {
 pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>> {
     Ok(vec![sign_ingress_with_request_status_query(
         pem,
-        governance_canister_id(),
+        opts.canister_id,
         &opts.method,
         candid::IDLArgs::from_str(&opts.args)?.to_bytes()?,
     )?])
