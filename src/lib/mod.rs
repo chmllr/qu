@@ -149,11 +149,7 @@ pub fn require_pem(pem: &Option<String>) -> AnyhowResult<String> {
     }
 }
 
-pub fn parse_query_response(
-    response: Vec<u8>,
-    canister_id: Principal,
-    method_name: &str,
-) -> AnyhowResult<String> {
+pub fn parse_query_response(response: Vec<u8>) -> AnyhowResult<Vec<u8>> {
     let cbor: Value = serde_cbor::from_slice(&response)
         .map_err(|_| anyhow!("Invalid cbor data in the content of the message."))?;
     if let Value::Map(m) = cbor {
@@ -163,10 +159,11 @@ pub fn parse_query_response(
             m.get(&Value::Text("reject_code".to_string())),
             m.get(&Value::Text("reject_message".to_string())),
         ) {
-            return Ok(format!(
-                "Rejected (code {}): {}",
-                reject_code, reject_message
-            ));
+            return Ok(
+                format!("Rejected (code {}): {}", reject_code, reject_message)
+                    .as_bytes()
+                    .to_vec(),
+            );
         }
 
         // Try to decode a successful response.
@@ -175,7 +172,7 @@ pub fn parse_query_response(
             m.get(&Value::Text("reply".to_string())),
         ) {
             if let Some(Value::Bytes(reply)) = m.get(&Value::Text("arg".to_string())) {
-                return Ok(get_idl_string(reply, canister_id, method_name, "rets"));
+                return Ok(reply.clone());
             }
         }
     }
@@ -231,18 +228,20 @@ pub fn mnemonic_to_pem(mnemonic: &Mnemonic) -> String {
     encode(&pem).replace('\r', "").replace("\n\n", "\n")
 }
 
-pub async fn send_ingress(message: &Ingress) -> AnyhowResult<String> {
-    let (_, canister_id, method_name, _) = message.parse()?;
+pub enum IngressResult {
+    RequestId(RequestId),
+    QueryResponse(Vec<u8>),
+}
+
+pub async fn send_ingress(message: &Ingress) -> AnyhowResult<IngressResult> {
+    let (_, canister_id, _, _) = message.parse()?;
 
     let transport = ReqwestHttpReplicaV2Transport::create(get_ic_url())?;
     let content = hex::decode(&message.content)?;
 
     if message.call_type == "query" {
-        Ok(parse_query_response(
-            transport.query(canister_id, content).await?,
-            canister_id,
-            &method_name,
-        )?)
+        let response = parse_query_response(transport.query(canister_id, content).await?)?;
+        Ok(IngressResult::QueryResponse(response))
     } else {
         let request_id = RequestId::from_str(
             &message
@@ -251,6 +250,15 @@ pub async fn send_ingress(message: &Ingress) -> AnyhowResult<String> {
                 .expect("Cannot get request_id from the update message"),
         )?;
         transport.call(canister_id, content, request_id).await?;
-        Ok(format!("0x{}", String::from(request_id)))
+        Ok(IngressResult::RequestId(request_id))
+    }
+}
+
+pub fn is_query(canister_id: Principal, method_name: &str) -> bool {
+    let spec = get_local_candid(canister_id).unwrap_or_default();
+    let method_type = get_candid_type(spec, method_name);
+    match &method_type {
+        Some((_, f)) => f.is_query(),
+        _ => false,
     }
 }

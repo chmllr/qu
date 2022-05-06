@@ -1,6 +1,5 @@
 use crate::lib::get_idl_string;
 use crate::lib::AnyhowResult;
-use crate::lib::{get_candid_type, get_local_candid};
 use anyhow::anyhow;
 use ic_agent::agent::QueryBuilder;
 use ic_agent::agent::UpdateBuilder;
@@ -103,15 +102,9 @@ pub fn sign(
     pem: &str,
     canister_id: Principal,
     method_name: &str,
+    is_query: bool,
     args: Vec<u8>,
 ) -> AnyhowResult<SignedMessageWithRequestId> {
-    let spec = get_local_candid(canister_id)?;
-    let method_type = get_candid_type(spec, method_name);
-    let is_query = match &method_type {
-        Some((_, f)) => f.is_query(),
-        _ => false,
-    };
-
     let ingress_expiry = Duration::from_secs(5 * 60);
 
     let (content, request_id) = if is_query {
@@ -151,7 +144,8 @@ pub fn sign_ingress_with_request_status_query(
     method_name: &str,
     args: Vec<u8>,
 ) -> AnyhowResult<IngressWithRequestId> {
-    let msg_with_req_id = sign(pem, canister_id, method_name, args)?;
+    let is_query = crate::lib::is_query(canister_id, method_name);
+    let msg_with_req_id = sign(pem, canister_id, method_name, is_query, args)?;
     let request_id = msg_with_req_id
         .request_id
         .expect("No request id for transfer call found");
@@ -168,8 +162,9 @@ pub fn sign_ingress(
     pem: &str,
     canister_id: Principal,
     method_name: &str,
+    is_query: bool,
     args: Vec<u8>,
 ) -> AnyhowResult<Ingress> {
-    let msg = sign(pem, canister_id, method_name, args)?;
+    let msg = sign(pem, canister_id, method_name, is_query, args)?;
     Ok(msg.message)
 }

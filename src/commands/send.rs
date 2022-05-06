@@ -1,7 +1,7 @@
 use crate::lib::{
-    read_from_file, request_status, send_ingress,
+    get_idl_string, read_from_file, request_status, send_ingress,
     signing::{Ingress, IngressWithRequestId},
-    AnyhowResult,
+    AnyhowResult, IngressResult,
 };
 use anyhow::anyhow;
 use clap::Parser;
@@ -94,13 +94,30 @@ async fn send(message: &Ingress, opts: &Opts) -> AnyhowResult {
         }
     }
 
-    let result = send_ingress(message).await?;
-    if !opts.raw {
-        if message.call_type == "query" {
-            println!("Response: {}", result);
-        } else {
-            println!("RequestId: {}", result);
+    match send_ingress(message).await? {
+        IngressResult::QueryResponse(response) => {
+            if opts.raw {
+                write_to_stdout(&response)?;
+            } else {
+                println!(
+                    "Response: {}",
+                    get_idl_string(&response, canister_id, &method_name, "rets")
+                );
+            }
         }
-    }
+        IngressResult::RequestId(id) => {
+            if !opts.raw {
+                println!("RequestId: 0x{}", String::from(id));
+            }
+        }
+    };
+    Ok(())
+}
+
+fn write_to_stdout(blob: &[u8]) -> AnyhowResult {
+    use std::io::Write;
+    let mut out = std::io::stdout();
+    out.write_all(blob)?;
+    out.flush()?;
     Ok(())
 }

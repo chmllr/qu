@@ -23,10 +23,13 @@ pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<Vec<Ingress>> {
         neuron_ids: opts.neuron_id.clone(),
         include_neurons_readable_by_caller: opts.neuron_id.is_empty(),
     })?;
+    let method_name = "list_neurons";
+    let canister_id = governance_canister_id();
     Ok(vec![sign_ingress(
         pem,
-        governance_canister_id(),
-        "list_neurons",
+        canister_id,
+        method_name,
+        crate::lib::is_query(canister_id, method_name),
         args,
     )?])
 }

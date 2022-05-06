@@ -1,6 +1,9 @@
 //! This module implements the command-line API.
 
-use crate::lib::{require_pem, AnyhowResult};
+use crate::{
+    commands::raw::IngressMessage,
+    lib::{require_pem, AnyhowResult},
+};
 use clap::Parser;
 use std::io::{self, Write};
 use tokio::runtime::Runtime;
@@ -56,7 +59,10 @@ pub fn exec(pem: &Option<String>, cmd: Command) -> AnyhowResult {
         Command::Generate(opts) => generate::exec(opts),
         Command::Raw(opts) => {
             let pem = require_pem(pem)?;
-            raw::exec(&pem, opts).and_then(|out| print(&out))
+            raw::exec(&pem, opts).and_then(|out| match out {
+                IngressMessage::Ingress(msg) => print(&vec![msg]),
+                IngressMessage::IngressWithRequestId(msg) => print(&vec![msg]),
+            })
         }
     }
 }
