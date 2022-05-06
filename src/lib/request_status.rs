@@ -1,5 +1,5 @@
 use crate::lib::get_ic_url;
-use crate::lib::{get_agent, get_idl_string, signing::RequestStatus, AnyhowResult};
+use crate::lib::{get_agent, signing::RequestStatus, AnyhowResult};
 use anyhow::{anyhow, Context};
 use ic_agent::agent::{Replied, RequestStatusResponse};
 use ic_agent::{AgentError, RequestId};
@@ -7,7 +7,7 @@ use ic_types::Principal;
 use std::str::FromStr;
 use std::sync::Arc;
 
-pub async fn submit(req: &RequestStatus, method_name: Option<String>) -> AnyhowResult<String> {
+pub async fn submit(req: &RequestStatus, silent: bool) -> AnyhowResult<Vec<u8>> {
     let canister_id = Principal::from_text(&req.canister_id).expect("Couldn't parse canister id");
     let request_id =
         RequestId::from_str(&req.request_id).context("Invalid argument: request_id")?;
@@ -35,7 +35,9 @@ pub async fn submit(req: &RequestStatus, method_name: Option<String>) -> AnyhowR
                 RequestStatusResponse::Unknown
                 | RequestStatusResponse::Received
                 | RequestStatusResponse::Processing => {
-                    println!("The request is being processed...");
+                    if !silent {
+                        println!("The request is being processed...");
+                    }
                 }
                 RequestStatusResponse::Done => {
                     return Err(anyhow!(AgentError::RequestStatusDoneNoReply(String::from(
@@ -48,8 +50,7 @@ pub async fn submit(req: &RequestStatus, method_name: Option<String>) -> AnyhowR
         }
     }
     .await?;
-    get_idl_string(&blob, canister_id, &method_name.unwrap_or_default(), "rets")
-        .context("Invalid IDL blob.")
+    Ok(blob)
 }
 
 pub(crate) struct ProxySignReplicaV2Transport {

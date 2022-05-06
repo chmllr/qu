@@ -63,8 +63,8 @@ pub fn get_idl_string(
     canister_id: Principal,
     method_name: &str,
     part: &str,
-) -> AnyhowResult<String> {
-    let spec = get_local_candid(canister_id)?;
+) -> String {
+    let spec = get_local_candid(canister_id).unwrap_or_default();
     let method_type = get_candid_type(spec, method_name);
     let result = match method_type {
         None => candid::IDLArgs::from_bytes(blob),
@@ -78,7 +78,7 @@ pub fn get_idl_string(
             },
         ),
     };
-    Ok(format!("{}", result?))
+    format!("{}", result.expect("Invalid IDL blob."))
 }
 
 /// Returns the candid type of a specifed method and correspondig idl description.
@@ -175,7 +175,7 @@ pub fn parse_query_response(
             m.get(&Value::Text("reply".to_string())),
         ) {
             if let Some(Value::Bytes(reply)) = m.get(&Value::Text("arg".to_string())) {
-                return get_idl_string(reply, canister_id, method_name, "rets");
+                return Ok(get_idl_string(reply, canister_id, method_name, "rets"));
             }
         }
     }

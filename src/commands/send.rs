@@ -19,6 +19,10 @@ pub struct Opts {
     /// Skips confirmation and sends the message directly.
     #[clap(long)]
     yes: bool,
+
+    /// Print raw output
+    #[clap(long)]
+    raw: bool,
 }
 
 pub async fn exec(opts: Opts) -> AnyhowResult {
@@ -47,9 +51,19 @@ async fn submit_ingress_and_check_status(
     if opts.dry_run {
         return Ok(());
     }
-    let (_, _, method_name, _) = &message.ingress.parse()?;
-    match request_status::submit(&message.request_status, Some(method_name.to_string())).await {
-        Ok(result) => println!("{}\n", result),
+    let (_, canister_id, method_name, _) = &message.ingress.parse()?;
+    let silent = opts.raw;
+    match request_status::submit(&message.request_status, silent).await {
+        Ok(blob) if opts.raw => {
+            use std::io::Write;
+            let mut out = std::io::stdout();
+            out.write_all(&blob)?;
+            out.flush()?;
+        }
+        Ok(blob) => {
+            let response = crate::lib::get_idl_string(&blob, *canister_id, &method_name, "rets");
+            println!("{}\n", response)
+        }
         Err(err) => println!("{}\n", err),
     };
     Ok(())
@@ -58,12 +72,14 @@ async fn submit_ingress_and_check_status(
 async fn send(message: &Ingress, opts: &Opts) -> AnyhowResult {
     let (sender, canister_id, method_name, args) = message.parse()?;
 
-    println!("Sending message with\n");
-    println!("  Call type:   {}", message.call_type);
-    println!("  Sender:      {}", sender);
-    println!("  Canister id: {}", canister_id);
-    println!("  Method name: {}", method_name);
-    println!("  Arguments:   {}", args);
+    if !opts.raw {
+        println!("Sending message with\n");
+        println!("  Call type:   {}", message.call_type);
+        println!("  Sender:      {}", sender);
+        println!("  Canister id: {}", canister_id);
+        println!("  Method name: {}", method_name);
+        println!("  Arguments:   {}", args);
+    }
 
     if opts.dry_run {
         return Ok(());
@@ -79,10 +95,12 @@ async fn send(message: &Ingress, opts: &Opts) -> AnyhowResult {
     }
 
     let result = send_ingress(message).await?;
-    if message.call_type == "query" {
-        println!("Response: {}", result);
-    } else {
-        println!("RequestId: {}", result);
+    if !opts.raw {
+        if message.call_type == "query" {
+            println!("Response: {}", result);
+        } else {
+            println!("RequestId: {}", result);
+        }
     }
     Ok(())
 }
