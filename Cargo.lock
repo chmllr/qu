@@ -2703,7 +2703,7 @@ dependencies = [
 
 [[package]]
 name = "qu"
-version = "0.2.15"
+version = "0.2.20"
 dependencies = [
  "anyhow",
  "bip39",

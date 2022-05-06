@@ -6,6 +6,7 @@ use crate::lib::{
 use anyhow::anyhow;
 use candid::Encode;
 use clap::Parser;
+use ic_agent::Agent;
 use ledger_canister::{AccountIdentifier, Memo, SendArgs, Tokens, TRANSACTION_FEE};
 
 /// Signs an ICP transfer transaction.
@@ -27,7 +28,7 @@ pub struct Opts {
     pub to: AccountIdentifier,
 }
 
-pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>> {
+pub fn exec(agent: Agent, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>> {
     let amount =
         parse_icpts(&opts.amount).map_err(|err| anyhow!("Could not add ICPs and e8s: {}", err))?;
     let fee = opts.fee.map_or(TRANSACTION_FEE, |v| {
@@ -50,7 +51,8 @@ pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>> {
         created_at_time: None,
     })?;
 
-    let msg = sign_ingress_with_request_status_query(pem, ledger_canister_id(), "send_dfx", args)?;
+    let msg =
+        sign_ingress_with_request_status_query(agent, ledger_canister_id(), "send_dfx", args)?;
     Ok(vec![msg])
 }
 

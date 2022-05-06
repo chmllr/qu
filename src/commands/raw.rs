@@ -7,6 +7,7 @@ use crate::lib::{
 use anyhow::anyhow;
 use candid::Principal;
 use clap::Parser;
+use ic_agent::Agent;
 use std::path::PathBuf;
 use std::str::FromStr;
 
@@ -37,7 +38,7 @@ pub enum IngressMessage {
     IngressWithRequestId(IngressWithRequestId),
 }
 
-pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<IngressMessage> {
+pub fn exec(agent: Agent, opts: Opts) -> AnyhowResult<IngressMessage> {
     let bytes = match (&opts.args, &opts.args_file) {
         (Some(args), None) => candid::IDLArgs::from_str(&args)?.to_bytes()?,
         (None, Some(path)) => {
@@ -58,7 +59,7 @@ pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<IngressMessage> {
     };
     if opts.query {
         return Ok(IngressMessage::Ingress(sign_ingress(
-            pem,
+            agent,
             opts.canister_id,
             &opts.method,
             true,
@@ -66,6 +67,6 @@ pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<IngressMessage> {
         )?));
     }
     Ok(IngressMessage::IngressWithRequestId(
-        sign_ingress_with_request_status_query(pem, opts.canister_id, &opts.method, bytes)?,
+        sign_ingress_with_request_status_query(agent, opts.canister_id, &opts.method, bytes)?,
     ))
 }

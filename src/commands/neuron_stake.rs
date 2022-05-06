@@ -9,6 +9,7 @@ use crate::{
 use anyhow::anyhow;
 use candid::Encode;
 use clap::Parser;
+use ic_agent::Agent;
 use ic_base_types::PrincipalId;
 use ic_nns_constants::GOVERNANCE_CANISTER_ID;
 use ic_nns_governance::{
@@ -37,8 +38,8 @@ pub struct Opts {
     fee: Option<String>,
 }
 
-pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>> {
-    let (controller, _) = crate::commands::ids::get_ids(&Some(pem.to_string()))?;
+pub fn exec(agent: Agent, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>> {
+    let (controller, _) = crate::commands::ids::get_ids(&agent)?;
     let nonce = match (&opts.nonce, &opts.name) {
         (Some(nonce), _) => *nonce,
         (_, Some(name)) => convert_name_to_nonce(name),
@@ -50,7 +51,7 @@ pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>> {
     );
     let mut messages = match opts.amount {
         Some(amount) => transfer::exec(
-            pem,
+            agent.clone(),
             transfer::Opts {
                 to: AccountIdentifier::new(GOVERNANCE_CANISTER_ID.get(), Some(subacc)),
                 amount,
@@ -66,7 +67,7 @@ pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>> {
     })?;
 
     messages.push(sign_ingress_with_request_status_query(
-        pem,
+        agent,
         governance_canister_id(),
         "claim_or_refresh_neuron_from_account",
         args,

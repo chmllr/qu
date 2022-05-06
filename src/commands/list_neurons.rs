@@ -4,6 +4,7 @@ use crate::{
 };
 use candid::Encode;
 use clap::Parser;
+use ic_agent::Agent;
 use ic_nns_governance::pb::v1::ListNeurons;
 
 /// Signs a neuron configuration change.
@@ -18,7 +19,7 @@ pub struct Opts {
 }
 
 // We currently only support a subset of the functionality.
-pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<Vec<Ingress>> {
+pub fn exec(agent: Agent, opts: Opts) -> AnyhowResult<Vec<Ingress>> {
     let args = Encode!(&ListNeurons {
         neuron_ids: opts.neuron_id.clone(),
         include_neurons_readable_by_caller: opts.neuron_id.is_empty(),
@@ -26,7 +27,7 @@ pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<Vec<Ingress>> {
     let method_name = "list_neurons";
     let canister_id = governance_canister_id();
     Ok(vec![sign_ingress(
-        pem,
+        agent,
         canister_id,
         method_name,
         crate::lib::is_query(canister_id, method_name),

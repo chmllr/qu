@@ -2,8 +2,9 @@
 
 use crate::{
     commands::raw::IngressMessage,
-    lib::{require_pem, AnyhowResult},
+    lib::{get_agent, AnyhowResult},
 };
+use anyhow::anyhow;
 use clap::Parser;
 use std::io::{self, Write};
 use tokio::runtime::Runtime;
@@ -35,35 +36,33 @@ pub enum Command {
     Raw(raw::Opts),
 }
 
-pub fn exec(pem: &Option<String>, cmd: Command) -> AnyhowResult {
+pub fn exec(pem: Option<String>, cmd: Command) -> AnyhowResult {
     let runtime = Runtime::new().expect("Unable to create a runtime");
-    match cmd {
-        Command::PublicIds => ids::exec(pem),
-        Command::Transfer(opts) => {
-            let pem = require_pem(pem)?;
-            transfer::exec(&pem, opts).and_then(|out| print(&out))
+    match (pem, cmd) {
+        (None, Command::Send(opts)) => runtime.block_on(async { send::exec(opts).await }),
+        (None, Command::Generate(opts)) => generate::exec(opts),
+        (Some(pem), cmd) => {
+            let agent = runtime.block_on(async { get_agent(&pem).await })?;
+            match cmd {
+                Command::PublicIds => ids::exec(agent),
+                Command::Transfer(opts) => transfer::exec(agent, opts).and_then(|out| print(&out)),
+                Command::NeuronStake(opts) => {
+                    neuron_stake::exec(agent, opts).and_then(|out| print(&out))
+                }
+                Command::NeuronManage(opts) => {
+                    neuron_manage::exec(agent, opts).and_then(|out| print(&out))
+                }
+                Command::ListNeurons(opts) => {
+                    list_neurons::exec(agent, opts).and_then(|out| print(&out))
+                }
+                Command::Raw(opts) => raw::exec(agent, opts).and_then(|out| match out {
+                    IngressMessage::Ingress(msg) => print(&vec![msg]),
+                    IngressMessage::IngressWithRequestId(msg) => print(&vec![msg]),
+                }),
+                _ => Err(anyhow!("command wrong or PEM file is missing")),
+            }
         }
-        Command::NeuronStake(opts) => {
-            let pem = require_pem(pem)?;
-            neuron_stake::exec(&pem, opts).and_then(|out| print(&out))
-        }
-        Command::NeuronManage(opts) => {
-            let pem = require_pem(pem)?;
-            neuron_manage::exec(&pem, opts).and_then(|out| print(&out))
-        }
-        Command::ListNeurons(opts) => {
-            let pem = require_pem(pem)?;
-            list_neurons::exec(&pem, opts).and_then(|out| print(&out))
-        }
-        Command::Send(opts) => runtime.block_on(async { send::exec(opts).await }),
-        Command::Generate(opts) => generate::exec(opts),
-        Command::Raw(opts) => {
-            let pem = require_pem(pem)?;
-            raw::exec(&pem, opts).and_then(|out| match out {
-                IngressMessage::Ingress(msg) => print(&vec![msg]),
-                IngressMessage::IngressWithRequestId(msg) => print(&vec![msg]),
-            })
-        }
+        _ => Err(anyhow!("command wrong or PEM file is missing")),
     }
 }
 

@@ -1,1 +1,1 @@
-${CARGO_TARGET_DIR:-../target}/debug/qu --seed-file - raw rrkah-fqaaa-aaaaa-aaaaq-cai manage_neuron '(record{id=opt record{id=123:nat64};command=opt variant{RegisterVote=record{vote=1:int32;proposal=opt record{id=7:nat64}}}})' | ${CARGO_TARGET_DIR:-../target}/debug/qu send --dry-run -
+${CARGO_TARGET_DIR:-../target}/debug/qu --seed-file - raw rrkah-fqaaa-aaaaa-aaaaq-cai manage_neuron --args '(record{id=opt record{id=123:nat64};command=opt variant{RegisterVote=record{vote=1:int32;proposal=opt record{id=7:nat64}}}})' | ${CARGO_TARGET_DIR:-../target}/debug/qu send --dry-run -

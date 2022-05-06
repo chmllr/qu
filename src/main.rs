@@ -33,7 +33,7 @@ fn main() {
             )
         }),
     };
-    if let Err(err) = commands::exec(&pem, command) {
+    if let Err(err) = commands::exec(pem, command) {
         eprintln!("{}", err);
         std::process::exit(1);
     }

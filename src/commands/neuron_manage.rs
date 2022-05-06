@@ -6,6 +6,7 @@ use crate::lib::{
 use anyhow::anyhow;
 use candid::Encode;
 use clap::Parser;
+use ic_agent::Agent;
 use ic_base_types::PrincipalId;
 use ic_nns_common::pb::v1::NeuronId;
 use ic_nns_governance::pb::v1::{
@@ -68,7 +69,7 @@ pub struct Opts {
     clear_manage_neuron_followees: bool,
 }
 
-pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>> {
+pub fn exec(agent: Agent, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>> {
     let mut msgs = Vec::new();
 
     let id = Some(NeuronId {
@@ -217,7 +218,7 @@ pub fn exec(pem: &str, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>> {
     let mut generated = Vec::new();
     for args in msgs {
         generated.push(sign_ingress_with_request_status_query(
-            pem,
+            agent.clone(),
             governance_canister_id(),
             "manage_neuron",
             args,

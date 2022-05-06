@@ -107,7 +107,7 @@ pub fn read_from_file(path: &str) -> AnyhowResult<String> {
 }
 
 /// Returns an agent with an identity derived from a private key if it was provided.
-pub fn get_agent(pem: &str) -> AnyhowResult<Agent> {
+pub async fn get_agent(pem: &str) -> AnyhowResult<Agent> {
     let timeout = std::time::Duration::from_secs(60 * 5);
     let builder = Agent::builder()
         .with_transport(
@@ -116,11 +116,12 @@ pub fn get_agent(pem: &str) -> AnyhowResult<Agent> {
             })?,
         )
         .with_ingress_expiry(Some(timeout));
-
-    builder
+    let agent = builder
         .with_boxed_identity(get_identity(pem))
         .build()
-        .map_err(|err| anyhow!(err))
+        .map_err(|err| anyhow!(err))?;
+    agent.fetch_root_key().await?;
+    Ok(agent)
 }
 
 /// Returns an identity derived from the private key.
@@ -137,15 +138,6 @@ pub fn get_identity(pem: &str) -> Box<dyn Identity + Sync + Send> {
                 std::process::exit(1);
             }
         },
-    }
-}
-
-pub fn require_pem(pem: &Option<String>) -> AnyhowResult<String> {
-    match pem {
-        None => Err(anyhow!(
-            "Cannot use anonymous principal, did you forget --seed-file <seed-file> ?"
-        )),
-        Some(val) => Ok(val.clone()),
     }
 }
 

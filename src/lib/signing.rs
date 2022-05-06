@@ -3,14 +3,13 @@ use crate::lib::AnyhowResult;
 use anyhow::anyhow;
 use ic_agent::agent::QueryBuilder;
 use ic_agent::agent::UpdateBuilder;
+use ic_agent::Agent;
 use ic_agent::RequestId;
 use ic_types::principal::Principal;
 use serde::{Deserialize, Serialize};
 use serde_cbor::Value;
 use std::convert::TryFrom;
 use std::time::Duration;
-
-use super::get_agent;
 
 #[derive(Debug)]
 pub struct MessageError(String);
@@ -85,11 +84,10 @@ impl Ingress {
 }
 
 pub fn request_status_sign(
-    pem: &str,
+    agent: Agent,
     request_id: RequestId,
     canister_id: Principal,
 ) -> AnyhowResult<RequestStatus> {
-    let agent = get_agent(pem)?;
     let val = agent.sign_request_status(canister_id, request_id)?;
     Ok(RequestStatus {
         canister_id: canister_id.to_string(),
@@ -99,7 +97,7 @@ pub fn request_status_sign(
 }
 
 pub fn sign(
-    pem: &str,
+    agent: Agent,
     canister_id: Principal,
     method_name: &str,
     is_query: bool,
@@ -108,18 +106,17 @@ pub fn sign(
     let ingress_expiry = Duration::from_secs(5 * 60);
 
     let (content, request_id) = if is_query {
-        let bytes = QueryBuilder::new(&get_agent(pem)?, canister_id, method_name.to_string())
+        let bytes = QueryBuilder::new(&agent, canister_id, method_name.to_string())
             .with_arg(args)
             .expire_after(ingress_expiry)
             .sign()?
             .signed_query;
         (hex::encode(bytes), None)
     } else {
-        let signed_update =
-            UpdateBuilder::new(&get_agent(pem)?, canister_id, method_name.to_string())
-                .with_arg(args)
-                .expire_after(ingress_expiry)
-                .sign()?;
+        let signed_update = UpdateBuilder::new(&agent, canister_id, method_name.to_string())
+            .with_arg(args)
+            .expire_after(ingress_expiry)
+            .sign()?;
 
         (
             hex::encode(signed_update.signed_update),
@@ -139,17 +136,17 @@ pub fn sign(
 
 /// Generates a bundle of signed messages (ingress + request status query).
 pub fn sign_ingress_with_request_status_query(
-    pem: &str,
+    agent: Agent,
     canister_id: Principal,
     method_name: &str,
     args: Vec<u8>,
 ) -> AnyhowResult<IngressWithRequestId> {
     let is_query = crate::lib::is_query(canister_id, method_name);
-    let msg_with_req_id = sign(pem, canister_id, method_name, is_query, args)?;
+    let msg_with_req_id = sign(agent.clone(), canister_id, method_name, is_query, args)?;
     let request_id = msg_with_req_id
         .request_id
         .expect("No request id for transfer call found");
-    let request_status = request_status_sign(pem, request_id, canister_id)?;
+    let request_status = request_status_sign(agent, request_id, canister_id)?;
     let message = IngressWithRequestId {
         ingress: msg_with_req_id.message,
         request_status,
@@ -159,12 +156,12 @@ pub fn sign_ingress_with_request_status_query(
 
 /// Generates a signed ingress message.
 pub fn sign_ingress(
-    pem: &str,
+    agent: Agent,
     canister_id: Principal,
     method_name: &str,
     is_query: bool,
     args: Vec<u8>,
 ) -> AnyhowResult<Ingress> {
-    let msg = sign(pem, canister_id, method_name, is_query, args)?;
+    let msg = sign(agent, canister_id, method_name, is_query, args)?;
     Ok(msg.message)
 }
