@@ -49,7 +49,7 @@ pub struct IngressWithRequestId {
 }
 
 impl Ingress {
-    pub fn parse(&self) -> AnyhowResult<(Principal, Principal, String, String)> {
+    pub fn parse(&self) -> AnyhowResult<(Principal, Principal, String, Result<String, String>)> {
         let cbor: Value = serde_cbor::from_slice(&hex::decode(&self.content)?)
             .map_err(|_| anyhow!("Invalid cbor data in the content of the message."))?;
         if let Value::Map(m) = cbor {

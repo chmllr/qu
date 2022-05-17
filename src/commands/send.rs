@@ -62,7 +62,7 @@ async fn submit_ingress_and_check_status(
         }
         Ok(blob) => {
             let response = crate::lib::get_idl_string(&blob, *canister_id, &method_name, "rets");
-            println!("{}\n", response)
+            println!("{}\n", response.map_err(|e| anyhow!(e))?)
         }
         Err(err) => println!("{}\n", err),
     };
@@ -78,7 +78,7 @@ async fn send(message: &Ingress, opts: &Opts) -> AnyhowResult {
         println!("  Sender:      {}", sender);
         println!("  Canister id: {}", canister_id);
         println!("  Method name: {}", method_name);
-        println!("  Arguments:   {}", args);
+        println!("  Arguments:   {}", args.map_err(|e| anyhow!(e))?);
     }
 
     if opts.dry_run {
@@ -102,6 +102,7 @@ async fn send(message: &Ingress, opts: &Opts) -> AnyhowResult {
                 println!(
                     "Response: {}",
                     get_idl_string(&response, canister_id, &method_name, "rets")
+                        .map_err(|e| anyhow!(e))?
                 );
             }
         }
