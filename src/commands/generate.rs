@@ -64,7 +64,7 @@ pub fn exec(opts: Opts) -> AnyhowResult {
     phrase.push('\n');
     std::fs::write(opts.seed_file, phrase)?;
     if let Some(path) = opts.pem_file {
-        std::fs::write(path, pem.clone())?;
+        std::fs::write(path, pem)?;
     }
     Ok(())
 }

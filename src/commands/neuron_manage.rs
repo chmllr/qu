@@ -185,7 +185,7 @@ pub fn exec(agent: Agent, opts: Opts) -> AnyhowResult<Vec<IngressWithRequestId>>
             ));
         }
         let args = Encode!(&ManageNeuron {
-            id: id.clone(),
+            id,
             command: Some(Command::MergeMaturity(MergeMaturity {
                 percentage_to_merge
             })),

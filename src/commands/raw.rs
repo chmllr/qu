@@ -40,7 +40,7 @@ pub enum IngressMessage {
 
 pub fn exec(agent: Agent, opts: Opts) -> AnyhowResult<IngressMessage> {
     let bytes = match (&opts.args, &opts.args_file) {
-        (Some(args), None) => candid::IDLArgs::from_str(&args)?.to_bytes()?,
+        (Some(args), None) => candid::IDLArgs::from_str(args)?.to_bytes()?,
         (None, Some(path)) => {
             use std::{
                 fs::File,

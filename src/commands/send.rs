@@ -61,7 +61,7 @@ async fn submit_ingress_and_check_status(
             out.flush()?;
         }
         Ok(blob) => {
-            let response = crate::lib::get_idl_string(&blob, *canister_id, &method_name, "rets");
+            let response = crate::lib::get_idl_string(&blob, *canister_id, method_name, "rets");
             println!("{}\n", response.map_err(|e| anyhow!(e))?)
         }
         Err(err) => println!("{}\n", err),
