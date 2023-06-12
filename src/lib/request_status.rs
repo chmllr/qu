@@ -11,7 +11,7 @@ pub async fn submit(req: &RequestStatus, silent: bool) -> AnyhowResult<Vec<u8>> 
     let canister_id = Principal::from_text(&req.canister_id).expect("Couldn't parse canister id");
     let request_id =
         RequestId::from_str(&req.request_id).context("Invalid argument: request_id")?;
-    let mut agent = get_agent("").await?;
+    let mut agent = get_agent(None).await?;
     agent.set_transport(ProxySignReplicaV2Transport {
         req: req.clone(),
         http_transport: Arc::new(

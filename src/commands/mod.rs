@@ -38,11 +38,11 @@ pub enum Command {
 
 pub fn exec(pem: Option<String>, cmd: Command) -> AnyhowResult {
     let runtime = Runtime::new().expect("Unable to create a runtime");
-    match (pem, cmd) {
-        (None, Command::Send(opts)) => runtime.block_on(async { send::exec(opts).await }),
-        (None, Command::Generate(opts)) => generate::exec(opts),
-        (Some(pem), cmd) => {
-            let agent = runtime.block_on(async { get_agent(&pem).await })?;
+    match cmd {
+        Command::Send(opts) => runtime.block_on(async { send::exec(opts).await }),
+        Command::Generate(opts) => generate::exec(opts),
+        cmd => {
+            let agent = runtime.block_on(async { get_agent(pem).await })?;
             match cmd {
                 Command::PublicIds => ids::exec(agent),
                 Command::Transfer(opts) => transfer::exec(agent, opts).and_then(|out| print(&out)),
@@ -62,7 +62,6 @@ pub fn exec(pem: Option<String>, cmd: Command) -> AnyhowResult {
                 _ => Err(anyhow!("command wrong or PEM file is missing")),
             }
         }
-        _ => Err(anyhow!("command wrong or PEM file is missing")),
     }
 }
 

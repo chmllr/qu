@@ -108,7 +108,7 @@ pub fn read_from_file(path: &str) -> AnyhowResult<String> {
 }
 
 /// Returns an agent with an identity derived from a private key if it was provided.
-pub async fn get_agent(pem: &str) -> AnyhowResult<Agent> {
+pub async fn get_agent(pem: Option<String>) -> AnyhowResult<Agent> {
     let timeout = std::time::Duration::from_secs(60 * 5);
     let builder = Agent::builder()
         .with_transport(
@@ -126,10 +126,11 @@ pub async fn get_agent(pem: &str) -> AnyhowResult<Agent> {
 }
 
 /// Returns an identity derived from the private key.
-pub fn get_identity(pem: &str) -> Box<dyn Identity + Sync + Send> {
-    if pem.is_empty() {
-        return Box::new(AnonymousIdentity);
-    }
+pub fn get_identity(pem: Option<String>) -> Box<dyn Identity + Sync + Send> {
+    let pem = match pem {
+        None => return Box::new(AnonymousIdentity),
+        Some(value) => value,
+    };
     match Secp256k1Identity::from_pem(pem.as_bytes()) {
         Ok(identity) => Box::new(identity),
         Err(_) => match BasicIdentity::from_pem(pem.as_bytes()) {
