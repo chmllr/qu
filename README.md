@@ -37,7 +37,6 @@ Managing the neuron:
 
 All of the commands above will generate signed messages, which can be sent on the online machine using the `send` command from above.
 
-
 ## Build
 
 To compile `qu` run:
@@ -59,8 +58,9 @@ Hence, if you would like to propose a change, please adhere to the following pri
 2. Optimize for correctness, then for readability.
 3. Avoid adding dependencies at all costs unless it's completely unreasonable to do so.
 4. Every new feature (+ a test) is proposed only after it was tested on real wallets.
-5. Increment the last digit of the crate version whenever the functionality scope changes. 
+5. Increment the last digit of the crate version whenever the functionality scope changes.
 
 ## Credit
 
-Qu was forked from [Quill](https://github.com/dfinity/qull).
+Qu was forked from [Quill](https://github.com/dfinity/quill) which was started by me as a side project and then was taken over
+by an official DFINITY team.
